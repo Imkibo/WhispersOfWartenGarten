@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quiz: Pflanzen & Kolonialzeit</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        color: #c43314;
+        box-sizing: border-box;
+        border-top-left-radius: 30px;
+        border-top-right-radius: 30px;
+        border-bottom-right-radius: 30px;
+        border-bottom-left-radius: 30px;
+        font-family: "Courier New", monospace;
+      }
+
+      body {
+        font-family: "Courier New", monospace;
+        background-image: url("img/plantground.png");
+        background-size: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100vw;
+        height: 100vh;
+        margin: 0;
+      }
+
+      #quiz-container {
+        text-align: center;
+        background-color: transparent;
+        border-radius: 8px;
+        width: 60vw;
+        height: 70vh;
+        padding: 30px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+      }
+
+      #überschrift {
+        font-size: 100px;
+      }
+
+      #question-text {
+        font-size: 3vw;
+        font-weight: bold;
+        text-align: center;
+        margin-bottom: 20px;
+      }
+
+      button {
+        background-color: #c43314;
+        color: white;
+        border: none;
+        padding: 10px;
+        margin-top: 20px;
+        cursor: pointer;
+      }
+
+      #answers-container {
+        margin-top: 10px;
+      }
+
+      .answer-button {
+        display: block;
+        margin: 10px auto;
+        padding: 10px;
+        background-color: #fe8d6c;
+        border: none;
+        width: 100%;
+        cursor: pointer;
+      }
+
+      .answer-button:hover {
+        background-color: #f96a45;
+      }
+
+      .status {
+        margin-top: 10px;
+      }
+
+      #feedback {
+        margin-top: 20px;
+        font-size: 1.2em;
+        font-weight: bold;
+      }
+
+      #restart-btn {
+        display: none;
+      }
+
+      #score {
+        font-size: 3vw;
+        font-weight: bold;
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
+        color: #ff0000;
+      }
+
+      #lives {
+        font-size: 3vw;
+        font-weight: bold;
+        position: absolute;
+        bottom: 20px;
+        left: 20px;
+        color: #ff0000;
+      }
+
+      #next-section {
+        text-align: center;
+        font-family: "Courier New", monospace;
+        display: center;
+        top: 90%;
+        left: 25%;
+        position: absolute;
+      }
+      #next-section1 {
+        text-align: left;
+        font-family: "Courier New", monospace;
+        display: center;
+        top: 90%;
+        right: 25%;
+        position: absolute;
+      }
+
+      #next-section h2 {
+        font-size: 24px;
+        color: #39ed39;
+      }
+
+      #next-section p {
+        font-size: 16px;
+        color: white;
+      }
+
+      #next-section a {
+        font-size: 30px;
+        font-weight: bold;
+        color: #fe8d6c;
+        text-decoration: none;
+      }
+
+      #next-section a:hover {
+        color: #ff0000;
+      }
+
+      #next-section1 h2 {
+        font-size: 24px;
+        color: #39ed39;
+      }
+
+      #next-section1 p {
+        font-size: 16px;
+        color: white;
+      }
+
+      #next-section1 a {
+        font-size: 30px;
+        font-weight: bold;
+        color: #fe8d6c;
+        text-decoration: none;
+      }
+
+      #next-section1 a:hover {
+        color: #ff0000;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="quiz-container">
+      <h1 id="überschrift">Rätselst du noch oder pflanzt du schon?</h1>
+      <button id="start-btn">Quiz starten</button>
+      <div id="question-container" style="display: none">
+        <p id="question-text"></p>
+        <div id="answers-container">
+          <!-- Dynamische Antwortbuttons -->
+        </div>
+        <p id="score">Punkte: 0</p>
+        <p id="lives">Leben: 5</p>
+        <p id="feedback"></p>
+      </div>
+      <button id="restart-btn">Nochmal versuchen</button>
+    </div>
+
+    <script>
+      const questions = [
+        {
+          question:
+            "Welcher südamerikanische Pflanzensamen wurde als Snack in der Hosentasche eines Touristen nach Europa eingeschleppt?",
+          answers: [
+            "Chilenische Araukarie",
+            "Mandeln",
+            "Olivenbaum",
+            "Teepflanze",
+          ],
+          correctAnswer: "Chilenische Araukarie",
+        },
+        {
+          question:
+            "Welche Pflanze, die während der Kolonialzeit auf den Plantagen in der Karibik verbreitet wurde, führte zur Entwicklung einer der weltweit größten Industrien?",
+          answers: ["Kautschukbaum", "Zuckerrohr", "Baumwolle", "Tee"],
+          correctAnswer: "Zuckerrohr",
+        },
+        {
+          question:
+            "Welche Pflanze wurde während der Kolonialzeit zur Herstellung von Schokolade eingeführt, nachdem sie von den Ureinwohnern Mittel- und Südamerikas kultiviert wurde?",
+          answers: ["Vanille", "Kakao", "Pfeffer", "Zimt"],
+          correctAnswer: "Kakao",
+        },
+        {
+          question:
+            "Welche asiatische Pflanze wurde während der Kolonialzeit von den Briten aus Indien nach Europa gebracht und ist bis heute eine der beliebtesten Teesorten?",
+          answers: [
+            "Kamille (Matricaria chamomilla)",
+            "Teepflanze (Camellia sinensis)",
+            "Ingwer (Zingiber officinale)",
+            "Bambus (Bambusa vulgaris)",
+          ],
+          correctAnswer: "Teepflanze (Camellia sinensis)",
+        },
+        {
+          question:
+            "Welche tropische Pflanze, die von den Portugiesen in Westafrika eingeführt wurde, spielte eine entscheidende Rolle beim internationalen Handel während der Kolonialzeit?",
+          answers: ["Kaffee", "Ananas", "Mais", "Bananen"],
+          correctAnswer: "Kaffee",
+        },
+        {
+          question:
+            "Welche Pflanze wurde in der Kolonialzeit über Bremer Handelshäuser nach Europa gebracht und spielte eine Schlüsselrolle in der Schokoladenproduktion?",
+          answers: ["Vanille", "Kakao", "Tabak", "Baumwolle"],
+          correctAnswer: "Kakao",
+        },
+      ];
+
+      let currentQuestionIndex = 0;
+      let score = 0;
+      let lives = 5;
+
+      const startBtn = document.getElementById("start-btn");
+      const questionContainer = document.getElementById("question-container");
+      const questionText = document.getElementById("question-text");
+      const answersContainer = document.getElementById("answers-container");
+      const feedback = document.getElementById("feedback");
+      const scoreText = document.getElementById("score");
+      const livesText = document.getElementById("lives");
+      const restartBtn = document.getElementById("restart-btn");
+
+      startBtn.addEventListener("click", startQuiz);
+      restartBtn.addEventListener("click", restartQuiz);
+
+      function startQuiz() {
+        document.getElementById("überschrift").style.display = "none";
+        startBtn.style.display = "none";
+        questionContainer.style.display = "block";
+        restartBtn.style.display = "none";
+        currentQuestionIndex = 0;
+        score = 0;
+        lives = 5;
+        scoreText.textContent = "Punkte: 0";
+        livesText.textContent = "Leben: 5";
+        feedback.textContent = "";
+        showQuestion();
+      }
+
+      function showQuestion() {
+        const currentQuestion = questions[currentQuestionIndex];
+        questionText.textContent = currentQuestion.question;
+        answersContainer.innerHTML = "";
+
+        currentQuestion.answers.forEach((answer) => {
+          const answerBtn = document.createElement("button");
+          answerBtn.textContent = answer;
+          answerBtn.classList.add("answer-button");
+          answerBtn.addEventListener("click", () => checkAnswer(answer));
+          answersContainer.appendChild(answerBtn);
+        });
+
+        feedback.textContent = "";
+      }
+
+      function checkAnswer(selectedAnswer) {
+        const currentQuestion = questions[currentQuestionIndex];
+
+        if (selectedAnswer === currentQuestion.correctAnswer) {
+          feedback.textContent = "Richtig!";
+          score++;
+          scoreText.textContent = "Punkte: " + score;
+          setTimeout(nextQuestion, 1000);
+        } else {
+          feedback.textContent = "Falsch!";
+          lives--;
+          livesText.textContent = "Leben: " + lives;
+          setTimeout(updateGameState, 1000);
+        }
+      }
+
+      function updateGameState() {
+        if (lives <= 0) {
+          feedback.textContent = "Game Over! Du hast leider keine Leben mehr!";
+          setTimeout(endQuiz, 1000);
+        } else {
+          showQuestion();
+        }
+      }
+
+      function nextQuestion() {
+        currentQuestionIndex++;
+        if (currentQuestionIndex < questions.length) {
+          showQuestion();
+        } else {
+          feedback.textContent = "";
+          setTimeout(endQuiz, 1000);
+        }
+      }
+
+      function endQuiz() {
+        questionContainer.style.display = "none";
+        // Vorherige Endnachricht entfernen, falls vorhanden
+        const existingMessage = document.getElementById("end-message");
+        if (existingMessage) {
+          existingMessage.remove();
+        }
+        let endMessage = document.createElement("h1");
+        endMessage.id = "end-message";
+        // Bei normalem Beenden (noch Leben übrig) erscheint "Herzlichen Glückwunsch"
+        if (lives > 0) {
+          endMessage.textContent = "Herzlichen Glückwunsch";
+        } else {
+          endMessage.textContent =
+            "Game Over! Du hast leider keine Leben mehr!";
+        }
+        endMessage.style.fontSize = "100px";
+        endMessage.style.color = "#c43314";
+        endMessage.style.textAlign = "center";
+        document.getElementById("quiz-container").appendChild(endMessage);
+        restartBtn.style.display = "inline-block";
+      }
+
+      function restartQuiz() {
+        // Endnachricht entfernen, falls vorhanden
+        const existingMessage = document.getElementById("end-message");
+        if (existingMessage) {
+          existingMessage.remove();
+        }
+        currentQuestionIndex = 0;
+        score = 0;
+        lives = 5;
+        scoreText.textContent = "Punkte: 0";
+        livesText.textContent = "Leben: 5";
+        feedback.textContent = "";
+        restartBtn.style.display = "none";
+        questionContainer.style.display = "block";
+        showQuestion();
+      }
+    </script>
+    <section id="next-section">
+      <a href="Game.html">SPIELEN >>> </a>
+    </section>
+    <section id="next-section1">
+      <a href="Gucken.html">GUCKEN >>> </a>
+    </section>
+  </body>
+</html>

@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kakteenschlacht</title>
+    <style>
+      /* Unverändertes Styling */
+      body {
+        background-color: #90a2bb;
+        margin: 0;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+      }
+
+      #score {
+        font-family: "Courier New", monospace;
+        font-size: 150px;
+        color: #39ed39;
+        margin-bottom: 20px;
+        z-index: 2;
+      }
+
+      body::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-image: url("img/hintergrund.png");
+        background-size: cover;
+        z-index: -1;
+      }
+
+      canvas {
+        background-color: #39ed39;
+        border-radius: 320px / 270px;
+        display: block;
+        width: 100%;
+        max-width: 850px;
+        height: auto;
+      }
+
+      /* Responsive Anpassungen bleiben wie gehabt */
+      @media (max-width: 900px) {
+        body {
+          background-color: black;
+        }
+        body::before {
+          content: "";
+          background-color: black;
+        }
+        #score {
+          font-size: 50px;
+          color: red;
+        }
+        canvas {
+          max-width: 100%;
+          height: auto;
+        }
+        #instructions-box {
+          position: relative;
+          margin-top: 20px;
+          width: 100%;
+          max-width: 850px;
+          background-color: black;
+          color: white;
+          font-family: "Courier New", monospace;
+          font-size: 1.1rem;
+          padding: 10px;
+          box-sizing: border-box;
+          overflow-y: auto;
+          z-index: 2;
+        }
+        #next-section {
+          margin-top: 20px;
+          text-align: center;
+          font-family: "Courier New", monospace;
+        }
+        #next-section h2 {
+          font-size: 15px;
+          color: #39ed39;
+        }
+        #next-section p {
+          font-size: 16px;
+          color: white;
+        }
+        #next-section a {
+          font-size: 15px;
+          font-weight: bold;
+          color: #90a2bb;
+          text-decoration: none;
+        }
+        #next-section a:hover {
+          color: #39ed39;
+        }
+      }
+
+      @media (min-width: 769px) {
+        #instructions-box {
+          position: absolute;
+          left: 0;
+          top: 65%;
+          width: 26%;
+          height: 35%;
+          border-top-right-radius: 100px;
+          background-color: rgba(0, 0, 0, 100);
+          color: white;
+          font-family: "Courier New", monospace;
+          font-size: 1.2rem;
+          padding: 20px;
+          box-sizing: border-box;
+          overflow-y: auto;
+          z-index: 2;
+        }
+        #score {
+          font-size: 150px;
+        }
+        canvas {
+          width: 850px;
+          height: 600px;
+        }
+        #next-section {
+          margin-top: 30px;
+          text-align: center;
+          font-family: "Courier New", monospace;
+        }
+        #next-section h2 {
+          font-size: 30px;
+          color: #39ed39;
+        }
+        #next-section p {
+          font-size: 18px;
+          color: white;
+        }
+        #next-section a {
+          font-size: 30px;
+          font-weight: bold;
+          color: #90a2bb;
+          text-decoration: none;
+        }
+        #next-section a:hover {
+          color: #39ed39;
+        }
+      }
+    </style>
+    <script>
+      let KEY_SPACE = false;
+      let KEY_UP = false;
+      let KEY_DOWN = false;
+      let canvas;
+      let ctx;
+      const backgroundImage = new Image();
+
+      let imke = {
+        x: 50,
+        y: 250,
+        width: 60,
+        height: 100,
+        src: "img/imke.png",
+        image: new Image(),
+      };
+      imke.image.src = imke.src;
+
+      let feiges = [];
+      let wurms = [];
+      let score = 0;
+      let feigeInterval = 5000; // Startintervall für Feigen (5 Sekunden)
+      let feigeGrowthRate = 20;
+      let feigeSizeThreshold = 10;
+      let feigeCounter = 0;
+      let feigeIntervalID;
+
+      function updateScore() {
+        document.getElementById("score").innerText = "Punkte: " + score;
+      }
+
+      document.onkeydown = function (e) {
+        if (e.keyCode === 32) KEY_SPACE = true;
+        if (e.keyCode === 38) KEY_UP = true;
+        if (e.keyCode === 40) KEY_DOWN = true;
+      };
+
+      document.onkeyup = function (e) {
+        if (e.keyCode === 32) KEY_SPACE = false;
+        if (e.keyCode === 38) KEY_UP = false;
+        if (e.keyCode === 40) KEY_DOWN = false;
+      };
+
+      function startGame() {
+        canvas = document.getElementById("canvas");
+        ctx = canvas.getContext("2d");
+        loadImages();
+        setInterval(update, 1000 / 25);
+        feigeIntervalID = setInterval(createfeiges, feigeInterval);
+        setInterval(checkForCollision, 1000 / 25);
+        draw();
+        updateScore();
+      }
+
+      // Neue Hilfsfunktion zum Überprüfen von Kollisionen
+      function isCollision(obj1, obj2) {
+        return (
+          obj1.x + obj1.width > obj2.x &&
+          obj1.y + obj1.height > obj2.y &&
+          obj1.x < obj2.x + obj2.width &&
+          obj1.y < obj2.y + obj2.height
+        );
+      }
+
+      function checkForCollision() {
+        feiges.forEach((feige, index) => {
+          if (isCollision(imke, feige)) {
+            imke.image.src = "img/boom.png";
+            console.log("imke Collision!!!");
+            setTimeout(() => {
+              location.reload();
+            }, 1000);
+          }
+
+          wurms.forEach((wurm) => {
+            if (isCollision(wurm, feige) && !feige.hit) {
+              feige.hit = true;
+              feige.img.src = "img/dreck.png";
+              console.log("feige Hit!!!");
+
+              score++;
+              updateScore();
+
+              setTimeout(() => {
+                feiges.splice(index, 1);
+              }, 500);
+            }
+          });
+        });
+      }
+
+      function createfeiges() {
+        let feige = {
+          x: canvas.width,
+          y: Math.random() * (canvas.height - 100),
+          width: 100,
+          height: 80,
+          src: "img/feige.png",
+          img: new Image(),
+          hit: false,
+          initialWidth: 100,
+          initialHeight: 80,
+          growTime: Date.now(),
+        };
+        feige.img.src = feige.src;
+        feiges.push(feige);
+
+        // Die Feigen werden nun schneller generiert, je mehr Zeit vergeht
+        let elapsedTime = Date.now() - feigeInterval;
+        if (elapsedTime > 20000 && feigeInterval > 1000) {
+          // nach 20 Sekunden
+          feigeInterval -= 200; // Intervall um 200ms verringern
+          clearInterval(feigeIntervalID); // Altes Intervall löschen
+          feigeIntervalID = setInterval(createfeiges, feigeInterval); // Neues Intervall setzen
+        }
+      }
+
+      function update() {
+        if (KEY_SPACE) {
+          let wurm = {
+            x: imke.x + imke.width - 30,
+            y: imke.y + imke.height / 2 - 2,
+            width: 20,
+            height: 20,
+            src: "img/wurm.png",
+            img: new Image(),
+          };
+          wurm.img.src = wurm.src;
+          wurms.push(wurm);
+        }
+
+        if (KEY_UP && imke.y > 0) {
+          imke.y -= 8;
+        }
+
+        if (KEY_DOWN && imke.y + imke.height < canvas.height) {
+          imke.y += 8;
+        }
+
+        feiges.forEach((feige) => {
+          if (score >= feigeSizeThreshold && !feige.hit) {
+            let elapsedTime = Date.now() - feige.growTime;
+            if (elapsedTime >= 500) {
+              if (feigeCounter % 2 === 0) {
+                feige.width *= 1 + feigeGrowthRate / 100;
+                feige.height *= 1 + feigeGrowthRate / 100;
+              }
+              feige.growTime = Date.now();
+              feigeCounter++;
+            }
+          }
+          feige.x -= 5;
+        });
+
+        wurms.forEach((wurm) => {
+          wurm.x += 10;
+        });
+
+        wurms = wurms.filter((wurm) => wurm.x < canvas.width);
+
+        draw();
+      }
+
+      function loadImages() {
+        backgroundImage.src = "img/p_background.png";
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
+        ctx.drawImage(imke.image, imke.x, imke.y, imke.width, imke.height);
+
+        feiges.forEach((feige) => {
+          ctx.drawImage(feige.img, feige.x, feige.y, feige.width, feige.height);
+        });
+
+        wurms.forEach((wurm) => {
+          ctx.drawImage(wurm.img, wurm.x, wurm.y, wurm.width, wurm.height);
+        });
+      }
+    </script>
+  </head>
+  <body onload="startGame()">
+    <div id="score">Punkte: 0</div>
+    <div class="game-container">
+      <canvas id="canvas" width="850" height="600"></canvas>
+    </div>
+    <div id="instructions-box">
+      <b>Spielanleitung:</b><br />
+      Steuere Imke: [↑] [↓] <br />
+      Schieße Raupen: [SPACE]
+      <br /><br />
+      Der invasive Feigenkaktus (Opuntia ficus-indica) ist los und verdrängt die
+      heimische Flora. Hungrige Larven der Kaktusmotte (Cactoblastis cactorum)
+      können die Verbreitung stoppen: Bewege dich mit den Pfeiltasten und
+      schieße Raupen, um die Feigenkakteen zu bekämpfen. Aber pass auf, dass
+      dich die Kakteen nicht stechen oder du auf ihrem Dreck ausrutschst.
+    </div>
+    <section id="next-section">
+      <a href="Quiz.html">RÄTSELN >>></a>
+    </section>
+  </body>
+</html>

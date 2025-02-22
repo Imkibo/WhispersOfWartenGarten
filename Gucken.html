@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pflanzen Angucken</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        color: #f89c6f;
+        background-color: #8dad50;
+        background-image: url("img/fäden.png");
+        font-family: "Courier New", monospace;
+        font-size: 40px;
+        font-weight: bold;
+      }
+
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        overflow-x: hidden;
+        padding: 0;
+        margin: 0;
+      }
+
+      .container {
+        position: relative;
+        min-height: 200vh; /* Damit genug Platz zum Scrollen vorhanden ist */
+      }
+
+      .info {
+        position: absolute;
+        opacity: 0;
+        transform: translate(0, 0);
+        transition: opacity 0.5s ease, transform 1s ease;
+        display: flex;
+        align-items: center;
+        text-align: center;
+      }
+
+      .info img {
+        max-width: 200px;
+        max-height: 200px;
+        width: 100%;
+        object-fit: cover;
+        border-radius: 50%;
+        filter: grayscale(100%); /* Macht das Bild schwarz-weiß */
+        margin-right: 20px; /* Abstand zwischen Bild und Text */
+      }
+
+      .info-text {
+        font-size: 20px;
+        color: white;
+        width: 60%;
+        margin: auto;
+        text-align: left;
+      }
+
+      .header {
+        font-size: 40px;
+        font-weight: bold;
+        color: #f89c6f;
+        padding-right: 5%;
+      }
+
+      .überschrift {
+        padding-top: 40px;
+        padding-left: 40px;
+        color: red;
+        font-size: 120px;
+      }
+
+      /* Positionierungen der Info-Sektionen */
+      #info1 {
+        top: 10%;
+        left: 10%;
+        text-align: justify;
+        opacity: 1;
+        transform: translate(0, 0);
+      }
+
+      #info2 {
+        top: 35%;
+        left: 25%;
+        text-align: justify;
+        flex-direction: row; /* Text rechts vom Bild */
+      }
+
+      #info3 {
+        size: 100%;
+        top: 60%;
+        left: 10%;
+        text-align: justify;
+        flex-direction: row; /* Text links vom Bild */
+      }
+
+      #info4 {
+        top: 85%;
+        left: 40%;
+        text-align: justify;
+        flex-direction: row; /* Text rechts vom Bild */
+      }
+
+      #info5 {
+        top: 110%;
+        left: 10%;
+        text-align: justify;
+        flex-direction: row; /* Text links vom Bild */
+      }
+
+      #info6 {
+        top: 135%;
+        left: 40%;
+        text-align: justify;
+        flex-direction: row; /* Text rechts vom Bild */
+        padding-bottom: 100px;
+      }
+
+      #next-section {
+        position: fixed;
+        background: transparent; /* Stellt sicher, dass es an einer festen Position bleibt */
+        bottom: 30px; /* Abstand vom unteren Rand */
+        text-align: left; /* Falls nötig */
+        font-family: "Courier New", monospace;
+      }
+
+      #next-section a:hover {
+        color: #ff0000;
+      }
+    </style>
+  </head>
+  <body>
+    <h1 class="überschrift">Kennst du schon?</h1>
+    <div class="container">
+      <section class="info" id="info1">
+        <img src="img/baobab.jpg" alt="Pflanze 1" />
+        <div>
+          <h1 class="header">1. Baobab-Bäume <br />[Adansonia]</h1>
+          <p class="info-text">
+            Was große Ähnlichkeit mit Hogwarts Peitschender Weide aufweist,
+            teilt auch deren Wider- standskraft. Der Baobab kann Jahre ohne
+            Regen auskommen, da er Wasser in seinem dicken Stamm speichert.
+          </p>
+          <br />
+          <p class="info-text">
+            Vorkommen: Afrika, Australien, Madagaskar. <br />Familie:
+            Malvengewächse (Malvaceae). <br />Größe: 5–30 m hoch, je nach Art.
+            <br />Alter: Bis zu 6.000 Jahre.
+          </p>
+        </div>
+      </section>
+
+      <section class="info" id="info2">
+        <img src="img/mangroven.png" alt="Pflanze 2" />
+        <div>
+          <h1 class="header">2. Mangroven <br />[Avicennia, Rhizophora]</h1>
+          <p class="info-text">
+            Mangroven sind an Küstengebieten heimisch und spielen eine wichtige
+            Rolle bei der Küstenerosion und dem Schutz vor Sturmfluten.
+          </p>
+          <br />
+          <p class="info-text">
+            Vorkommen: Tropen und Subtropen weltweit. <br />Familie:
+            Verschiedene, darunter Rhizophoraceae und Acanthaceae. <br />Größe:
+            1–30 m hoch, je nach Art. <br />Alter: Mehrere Jahrhunderte möglich.
+          </p>
+        </div>
+      </section>
+
+      <section class="info" id="info3">
+        <img src="img/kiefer.png" alt="Pflanze 3" />
+        <div>
+          <h1 class="header">3. Bristlecone-Kiefer <br />[Pinus longaeva]</h1>
+          <p class="info-text">
+            Der älteste lebende Baum: In Kalifornien (USA) existieren Exemplare,
+            die mehr als 5.000 Jahre alt sind.
+          </p>
+          <br />
+          <p class="info-text">
+            Vorkommen: Gebirgsregionen im Westen der USA, insbesondere
+            Kalifornien, Nevada und Utah.
+            <br />Familie: Kieferngewächse (Pinaceae). <br />Größe: 5–15 m hoch,
+            oft bizarr verformt durch extreme Wetterbedingungen. <br />Alter:
+            Bis zu 5.000 Jahre, einige der ältesten bekannten Bäume der Erde.
+          </p>
+        </div>
+      </section>
+
+      <section class="info" id="info4">
+        <img src="img/drachenbaum.png" alt="Pflanze 4" />
+        <div>
+          <h1 class="header">Drachenblutbaum <br />[Dracaena cinnabari]</h1>
+          <p class="info-text">
+            "Drachenblut" wird das rote Harz dieser Pflanze genannt, es hat
+            medizinische und rituelle Verwendungen, wird jedoch auch als
+            natürliche Abwehr gegen Schädlinge und Krankheiten genutzt.
+          </p>
+          <br />
+          <p class="info-text">
+            Vorkommen: Socotra (Jemen), Kanarische Inseln, Marokko.
+            <br />Familie: Spargelgewächse (Asparagaceae). <br />Größe: 5–12 m
+            hoch, charakteristische schirmförmige Krone. <br />Alter: Bis zu
+            1.000 Jahre.
+          </p>
+        </div>
+      </section>
+
+      <section class="info" id="info5">
+        <img src="img/ffflanze.png" alt="Pflanze 5" />
+        <div>
+          <h1 class="header">
+            Fleischfressende Kannenpflanze <br />[Nepenthes]
+          </h1>
+          <p class="info-text">
+            Angelockt von dem süßen Duft ihrer Kannen, fallen Insekten in die
+            darin enthaltene Flüssigkeit und nehmen ein schnelles Ende. Größere
+            Arten fangen sogar kleine Säugetiere oder Vögel!
+          </p>
+          <br />
+          <p class="info-text">
+            Vorkommen: Tropische Regenwälder Südostasiens, Madagaskar,
+            Australien.
+            <br />Familie: Kannenpflanzengewächse (Nepenthaceae). <br />Größe:
+            10 cm bis über 1 m hoch, Kannen bis zu 50 cm lang. <br />Alter:
+            Mehrere Jahrzehnte, abhängig von Art und Standort.
+          </p>
+        </div>
+      </section>
+
+      <section class="info" id="info6">
+        <img src="img/arnoldi.png" alt="Pflanze 6" />
+        <div>
+          <h1 class="header">
+            Die womöglich größte <br />Blume der Welt <br />[Rafflesia arnoldii]
+          </h1>
+          <br />
+          <p class="info-text">
+            Ihre riesigen, fleischfarbenen Blüten können einen Durchmesser von
+            über einem Meter erreichen und bis zu zehn Kilogramm wiegen.Ohne
+            Wurzeln, Stängel oder Blätter lebt Rafflesia arnoldii als Parasit
+            auf Lianen und bleibt die meiste Zeit ihres Lebens unsichtbar.
+          </p>
+          <br />
+          <p class="info-text">
+            Vorkommen: Regenwälder Südostasiens, insbesondere Indonesien und
+            Malaysia.
+            <br />Familie: Rafflesiengewächse (Rafflesiaceae). <br />Größe:
+            Blütendurchmesser bis zu 1,5 m, Gewicht bis zu 10 kg. <br />Alter:
+            Blüte nur wenige Tage sichtbar, Wirtspflanze kann Jahrzehnte leben.
+          </p>
+        </div>
+      </section>
+    </div>
+    <section id="next-section" class="überschrift">
+      <a href="Quiz.html">RÄTSELN >>> </a>
+    </section>
+
+    <script>
+      window.addEventListener("scroll", function () {
+        const infoSections = document.querySelectorAll(".info");
+
+        infoSections.forEach((section) => {
+          const rect = section.getBoundingClientRect();
+          const windowHeight = window.innerHeight;
+
+          // Wenn die Sektion im sichtbaren Bereich des Fensters ist
+          if (
+            rect.top < windowHeight * 0.8 &&
+            rect.bottom > windowHeight * 0.2
+          ) {
+            section.style.opacity = 1;
+            section.style.transform = "translate(0, 0)"; // Animation zur Sichtbarkeit
+          } else {
+            section.style.opacity = 0;
+            section.style.transform = "translate(50px, 50px)"; // Ausgangspunkt der Animation
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
