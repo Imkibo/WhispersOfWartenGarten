@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Kakteenschlacht</title>
     <style>
-      /* Unverändertes Styling */
+      /* Dein originales CSS bleibt unverändert */
       body {
         background-color: #90a2bb;
         margin: 0;
@@ -45,6 +45,34 @@
         height: auto;
       }
 
+      /* Wurmspeicher Styling */
+      #worm-storage {
+        position: absolute;
+        bottom: 20px;
+        left: 30%;
+        transform: translateX(-50%);
+        width: 150px;
+        height: 150px;
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center;
+        z-index: 3;
+      }
+
+      /* Audio Player Styling */
+      audio {
+        width: 300px;
+        height: 40px;
+        background: black;
+        border-radius: 10px;
+        display: block;
+        margin-top: 20px;
+      }
+
+      audio::-webkit-media-controls-panel {
+        background: #90a2bb;
+      }
+
       /* Responsive Anpassungen bleiben wie gehabt */
       @media (max-width: 900px) {
         body {
@@ -76,28 +104,6 @@
           overflow-y: auto;
           z-index: 2;
         }
-        #next-section {
-          margin-top: 20px;
-          text-align: center;
-          font-family: "Courier New", monospace;
-        }
-        #next-section h2 {
-          font-size: 15px;
-          color: #39ed39;
-        }
-        #next-section p {
-          font-size: 16px;
-          color: white;
-        }
-        #next-section a {
-          font-size: 15px;
-          font-weight: bold;
-          color: #90a2bb;
-          text-decoration: none;
-        }
-        #next-section a:hover {
-          color: #39ed39;
-        }
       }
 
       @media (min-width: 769px) {
@@ -124,34 +130,35 @@
           width: 850px;
           height: 600px;
         }
-        #next-section {
-          margin-top: 30px;
-          text-align: center;
-          font-family: "Courier New", monospace;
-        }
-        #next-section h2 {
-          font-size: 30px;
-          color: #39ed39;
-        }
-        #next-section p {
-          font-size: 18px;
-          color: white;
-        }
-        #next-section a {
-          font-size: 30px;
-          font-weight: bold;
-          color: #90a2bb;
-          text-decoration: none;
-        }
-        #next-section a:hover {
-          color: #39ed39;
-        }
+      }
+      #next-section {
+        margin-top: 30px;
+        font-family: "Courier New", monospace;
+      }
+      #next-section h2 {
+        font-size: 30px;
+        color: #39ed39;
+      }
+      #next-section p {
+        font-size: 18px;
+        color: white;
+      }
+      #next-section a {
+        font-size: 30px;
+        font-weight: bold;
+        color: #90a2bb;
+        text-decoration: none;
+      }
+      #next-section a:hover {
+        color: #39ed39;
       }
     </style>
     <script>
       let KEY_SPACE = false;
       let KEY_UP = false;
       let KEY_DOWN = false;
+      let paused = false; // Neue Variable für Pausenfunktion
+
       let canvas;
       let ctx;
       const backgroundImage = new Image();
@@ -175,6 +182,25 @@
       let feigeCounter = 0;
       let feigeIntervalID;
 
+      // Wurmspeicher Variablen
+      let wormStorage = {
+        currentWorms: 0,
+        maxWorms: 10,
+        wormTimer: Date.now(),
+      };
+
+      // Sounds laden
+      let soundFeigeHit = new Audio("sounds/outsch.mp3");
+      let soundImkeBoom = new Audio("sounds/explode.mp3");
+      let soundWurmShoot = new Audio("sounds/wurmflutsch.mp3");
+      let soundBackground = new Audio("sounds/Kaktusschlacht.mp3");
+      let soundSlip = new Audio("sounds/ausrutsch.mp3");
+
+      // Hintergrundmusik im Loop abspielen
+      soundBackground.loop = true;
+      soundBackground.volume = 0.5;
+      soundBackground.play();
+
       function updateScore() {
         document.getElementById("score").innerText = "Punkte: " + score;
       }
@@ -183,6 +209,8 @@
         if (e.keyCode === 32) KEY_SPACE = true;
         if (e.keyCode === 38) KEY_UP = true;
         if (e.keyCode === 40) KEY_DOWN = true;
+        if (e.key === "s") paused = true; // "s" pausiert das Spiel
+        if (e.key === "p") paused = false; // "p" setzt das Spiel fort
       };
 
       document.onkeyup = function (e) {
@@ -200,9 +228,9 @@
         setInterval(checkForCollision, 1000 / 25);
         draw();
         updateScore();
+        setInterval(updateWormStorage, 1000);
       }
 
-      // Neue Hilfsfunktion zum Überprüfen von Kollisionen
       function isCollision(obj1, obj2) {
         return (
           obj1.x + obj1.width > obj2.x &&
@@ -217,6 +245,7 @@
           if (isCollision(imke, feige)) {
             imke.image.src = "img/boom.png";
             console.log("imke Collision!!!");
+            soundImkeBoom.play();
             setTimeout(() => {
               location.reload();
             }, 1000);
@@ -228,6 +257,7 @@
               feige.img.src = "img/dreck.png";
               console.log("feige Hit!!!");
 
+              soundFeigeHit.play();
               score++;
               updateScore();
 
@@ -237,6 +267,10 @@
             }
           });
         });
+
+        if (isCollision(imke, { x: 200, y: 300, width: 100, height: 100 })) {
+          soundSlip.play();
+        }
       }
 
       function createfeiges() {
@@ -255,57 +289,57 @@
         feige.img.src = feige.src;
         feiges.push(feige);
 
-        // Die Feigen werden nun schneller generiert, je mehr Zeit vergeht
         let elapsedTime = Date.now() - feigeInterval;
         if (elapsedTime > 20000 && feigeInterval > 1000) {
-          // nach 20 Sekunden
-          feigeInterval -= 200; // Intervall um 200ms verringern
-          clearInterval(feigeIntervalID); // Altes Intervall löschen
-          feigeIntervalID = setInterval(createfeiges, feigeInterval); // Neues Intervall setzen
+          feigeInterval -= 200;
+          clearInterval(feigeIntervalID);
+          feigeIntervalID = setInterval(createfeiges, feigeInterval);
+        }
+      }
+
+      function updateWormStorage() {
+        if (Date.now() - wormStorage.wormTimer > 5000) {
+          wormStorage.wormTimer = Date.now();
+          wormStorage.currentWorms = 0;
+        }
+
+        if (wormStorage.currentWorms >= 10) {
+          document.getElementById("worm-storage").style.backgroundImage =
+            "url('img/topf3.png')";
+        } else if (wormStorage.currentWorms >= 5) {
+          document.getElementById("worm-storage").style.backgroundImage =
+            "url('img/topf2.png')";
+        } else {
+          document.getElementById("worm-storage").style.backgroundImage =
+            "url('img/topf1.png')";
         }
       }
 
       function update() {
+        if (paused) return; // Falls pausiert, keine Updates durchführen
+
         if (KEY_SPACE) {
-          let wurm = {
-            x: imke.x + imke.width - 30,
-            y: imke.y + imke.height / 2 - 2,
-            width: 20,
-            height: 20,
-            src: "img/wurm.png",
-            img: new Image(),
-          };
-          wurm.img.src = wurm.src;
-          wurms.push(wurm);
-        }
-
-        if (KEY_UP && imke.y > 0) {
-          imke.y -= 8;
-        }
-
-        if (KEY_DOWN && imke.y + imke.height < canvas.height) {
-          imke.y += 8;
-        }
-
-        feiges.forEach((feige) => {
-          if (score >= feigeSizeThreshold && !feige.hit) {
-            let elapsedTime = Date.now() - feige.growTime;
-            if (elapsedTime >= 500) {
-              if (feigeCounter % 2 === 0) {
-                feige.width *= 1 + feigeGrowthRate / 100;
-                feige.height *= 1 + feigeGrowthRate / 100;
-              }
-              feige.growTime = Date.now();
-              feigeCounter++;
-            }
+          if (wormStorage.currentWorms < wormStorage.maxWorms) {
+            let wurm = {
+              x: imke.x + imke.width - 30,
+              y: imke.y + imke.height / 2 - 2,
+              width: 20,
+              height: 20,
+              src: "img/wurm.png",
+              img: new Image(),
+            };
+            wurm.img.src = wurm.src;
+            wurms.push(wurm);
+            wormStorage.currentWorms++;
+            soundWurmShoot.play();
           }
-          feige.x -= 5;
-        });
+        }
 
-        wurms.forEach((wurm) => {
-          wurm.x += 10;
-        });
+        if (KEY_UP && imke.y > 0) imke.y -= 8;
+        if (KEY_DOWN && imke.y + imke.height < canvas.height) imke.y += 8;
 
+        feiges.forEach((feige) => (feige.x -= 5));
+        wurms.forEach((wurm) => (wurm.x += 10));
         wurms = wurms.filter((wurm) => wurm.x < canvas.width);
 
         draw();
@@ -319,7 +353,6 @@
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
         ctx.drawImage(imke.image, imke.x, imke.y, imke.width, imke.height);
-
         feiges.forEach((feige) => {
           ctx.drawImage(feige.img, feige.x, feige.y, feige.width, feige.height);
         });
@@ -328,26 +361,316 @@
           ctx.drawImage(wurm.img, wurm.x, wurm.y, wurm.width, wurm.height);
         });
       }
+      window.onload = startGame;
     </script>
   </head>
-  <body onload="startGame()">
+  <body>
     <div id="score">Punkte: 0</div>
-    <div class="game-container">
-      <canvas id="canvas" width="850" height="600"></canvas>
-    </div>
+    <canvas id="canvas" width="850" height="600"></canvas>
+    <div id="worm-storage"></div>
     <div id="instructions-box">
       <b>Spielanleitung:</b><br />
       Steuere Imke: [↑] [↓] <br />
-      Schieße Raupen: [SPACE]
+      Schieße Raupen: [SPACE]<br />
+      Pausieren: [s]<br />
+      Fortsetzen: [p]<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pflanzen Angucken</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        color: #f89c6f;
+        background-color: #8dad50;
+        background-image: url("img/fäden.png");
+        font-family: "Courier New", monospace;
+        font-size: 40px;
+        font-weight: bold;
+      }
+
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        overflow-x: hidden;
+        padding: 0;
+        margin: 0;
+      }
+
+      .container {
+        position: relative;
+        min-height: 200vh; /* Damit genug Platz zum Scrollen vorhanden ist */
+      }
+
+      .info {
+        position: absolute;
+        opacity: 0;
+        transform: translate(0, 0);
+        transition: opacity 0.5s ease, transform 1s ease;
+        display: flex;
+        align-items: center;
+        text-align: center;
+      }
+
+      .info img {
+        max-width: 200px;
+        max-height: 200px;
+        width: 100%;
+        object-fit: cover;
+        border-radius: 50%;
+        filter: grayscale(100%); /* Macht das Bild schwarz-weiß */
+        margin-right: 20px; /* Abstand zwischen Bild und Text */
+      }
+
+      .info-text {
+        font-size: 20px;
+        color: white;
+        width: 60%;
+        margin: auto;
+        text-align: left;
+      }
+
+      .header {
+        font-size: 40px;
+        font-weight: bold;
+        color: #f89c6f;
+        padding-right: 5%;
+      }
+
+      .überschrift {
+        padding-top: 40px;
+        padding-left: 40px;
+        color: red;
+        font-size: 120px;
+      }
+
+      /* Positionierungen der Info-Sektionen */
+      #info1 {
+        top: 10%;
+        left: 10%;
+        text-align: justify;
+        opacity: 1;
+        transform: translate(0, 0);
+      }
+
+      #info2 {
+        top: 35%;
+        left: 25%;
+        text-align: justify;
+        flex-direction: row; /* Text rechts vom Bild */
+      }
+
+      #info3 {
+        size: 100%;
+        top: 60%;
+        left: 10%;
+        text-align: justify;
+        flex-direction: row; /* Text links vom Bild */
+      }
+
+      #info4 {
+        top: 85%;
+        left: 40%;
+        text-align: justify;
+        flex-direction: row; /* Text rechts vom Bild */
+      }
+
+      #info5 {
+        top: 110%;
+        left: 10%;
+        text-align: justify;
+        flex-direction: row; /* Text links vom Bild */
+      }
+
+      #info6 {
+        top: 135%;
+        left: 40%;
+        text-align: justify;
+        flex-direction: row; /* Text rechts vom Bild */
+        padding-bottom: 100px;
+      }
+
+      #next-section {
+        position: fixed;
+        background: transparent; /* Stellt sicher, dass es an einer festen Position bleibt */
+        bottom: 30px; /* Abstand vom unteren Rand */
+        text-align: left; /* Falls nötig */
+        font-family: "Courier New", monospace;
+      }
+
+      #next-section a:hover {
+        color: #ff0000;
+      }
+    </style>
+  </head>
+  <body>
+    <h1 class="überschrift">Kennst du schon?</h1>
+    <div class="container">
+      <section class="info" id="info1">
+        <img src="img/baobab.jpg" alt="Pflanze 1" />
+        <div>
+          <h1 class="header">1. Baobab-Bäume <br />[Adansonia]</h1>
+          <p class="info-text">
+            Was große Ähnlichkeit mit Hogwarts Peitschender Weide aufweist,
+            teilt auch deren Wider- standskraft. Der Baobab kann Jahre ohne
+            Regen auskommen, da er Wasser in seinem dicken Stamm speichert.
+          </p>
+          <br />
+          <p class="info-text">
+            Vorkommen: Afrika, Australien, Madagaskar. <br />Familie:
+            Malvengewächse (Malvaceae). <br />Größe: 5–30 m hoch, je nach Art.
+            <br />Alter: Bis zu 6.000 Jahre.
+          </p>
+        </div>
+      </section>
+
+      <section class="info" id="info2">
+        <img src="img/mangroven.png" alt="Pflanze 2" />
+        <div>
+          <h1 class="header">2. Mangroven <br />[Avicennia, Rhizophora]</h1>
+          <p class="info-text">
+            Mangroven sind an Küstengebieten heimisch und spielen eine wichtige
+            Rolle bei der Küstenerosion und dem Schutz vor Sturmfluten.
+          </p>
+          <br />
+          <p class="info-text">
+            Vorkommen: Tropen und Subtropen weltweit. <br />Familie:
+            Verschiedene, darunter Rhizophoraceae und Acanthaceae. <br />Größe:
+            1–30 m hoch, je nach Art. <br />Alter: Mehrere Jahrhunderte möglich.
+          </p>
+        </div>
+      </section>
+
+      <section class="info" id="info3">
+        <img src="img/kiefer.png" alt="Pflanze 3" />
+        <div>
+          <h1 class="header">3. Bristlecone-Kiefer <br />[Pinus longaeva]</h1>
+          <p class="info-text">
+            Der älteste lebende Baum: In Kalifornien (USA) existieren Exemplare,
+            die mehr als 5.000 Jahre alt sind.
+          </p>
+          <br />
+          <p class="info-text">
+            Vorkommen: Gebirgsregionen im Westen der USA, insbesondere
+            Kalifornien, Nevada und Utah.
+            <br />Familie: Kieferngewächse (Pinaceae). <br />Größe: 5–15 m hoch,
+            oft bizarr verformt durch extreme Wetterbedingungen. <br />Alter:
+            Bis zu 5.000 Jahre, einige der ältesten bekannten Bäume der Erde.
+          </p>
+        </div>
+      </section>
+
+      <section class="info" id="info4">
+        <img src="img/drachenbaum.png" alt="Pflanze 4" />
+        <div>
+          <h1 class="header">Drachenblutbaum <br />[Dracaena cinnabari]</h1>
+          <p class="info-text">
+            "Drachenblut" wird das rote Harz dieser Pflanze genannt, es hat
+            medizinische und rituelle Verwendungen, wird jedoch auch als
+            natürliche Abwehr gegen Schädlinge und Krankheiten genutzt.
+          </p>
+          <br />
+          <p class="info-text">
+            Vorkommen: Socotra (Jemen), Kanarische Inseln, Marokko.
+            <br />Familie: Spargelgewächse (Asparagaceae). <br />Größe: 5–12 m
+            hoch, charakteristische schirmförmige Krone. <br />Alter: Bis zu
+            1.000 Jahre.
+          </p>
+        </div>
+      </section>
+
+      <section class="info" id="info5">
+        <img src="img/ffflanze.png" alt="Pflanze 5" />
+        <div>
+          <h1 class="header">
+            Fleischfressende Kannenpflanze <br />[Nepenthes]
+          </h1>
+          <p class="info-text">
+            Angelockt von dem süßen Duft ihrer Kannen, fallen Insekten in die
+            darin enthaltene Flüssigkeit und nehmen ein schnelles Ende. Größere
+            Arten fangen sogar kleine Säugetiere oder Vögel!
+          </p>
+          <br />
+          <p class="info-text">
+            Vorkommen: Tropische Regenwälder Südostasiens, Madagaskar,
+            Australien.
+            <br />Familie: Kannenpflanzengewächse (Nepenthaceae). <br />Größe:
+            10 cm bis über 1 m hoch, Kannen bis zu 50 cm lang. <br />Alter:
+            Mehrere Jahrzehnte, abhängig von Art und Standort.
+          </p>
+        </div>
+      </section>
+
+      <section class="info" id="info6">
+        <img src="img/arnoldi.png" alt="Pflanze 6" />
+        <div>
+          <h1 class="header">
+            Die womöglich größte <br />Blume der Welt <br />[Rafflesia arnoldii]
+          </h1>
+          <br />
+          <p class="info-text">
+            Ihre riesigen, fleischfarbenen Blüten können einen Durchmesser von
+            über einem Meter erreichen und bis zu zehn Kilogramm wiegen.Ohne
+            Wurzeln, Stängel oder Blätter lebt Rafflesia arnoldii als Parasit
+            auf Lianen und bleibt die meiste Zeit ihres Lebens unsichtbar.
+          </p>
+          <br />
+          <p class="info-text">
+            Vorkommen: Regenwälder Südostasiens, insbesondere Indonesien und
+            Malaysia.
+            <br />Familie: Rafflesiengewächse (Rafflesiaceae). <br />Größe:
+            Blütendurchmesser bis zu 1,5 m, Gewicht bis zu 10 kg. <br />Alter:
+            Blüte nur wenige Tage sichtbar, Wirtspflanze kann Jahrzehnte leben.
+          </p>
+        </div>
+      </section>
+    </div>
+    <section id="next-section" class="überschrift">
+      <a href="Quiz.html">RÄTSELN >>> </a>
+    </section>
+
+    <script>
+      window.addEventListener("scroll", function () {
+        const infoSections = document.querySelectorAll(".info");
+
+        infoSections.forEach((section) => {
+          const rect = section.getBoundingClientRect();
+          const windowHeight = window.innerHeight;
+
+          // Wenn die Sektion im sichtbaren Bereich des Fensters ist
+          if (
+            rect.top < windowHeight * 0.8 &&
+            rect.bottom > windowHeight * 0.2
+          ) {
+            section.style.opacity = 1;
+            section.style.transform = "translate(0, 0)"; // Animation zur Sichtbarkeit
+          } else {
+            section.style.opacity = 0;
+            section.style.transform = "translate(50px, 50px)"; // Ausgangspunkt der Animation
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
+
       <br /><br />
       Der invasive Feigenkaktus (Opuntia ficus-indica) ist los und verdrängt die
       heimische Flora. Hungrige Larven der Kaktusmotte (Cactoblastis cactorum)
-      können die Verbreitung stoppen: Bewege dich mit den Pfeiltasten und
-      schieße Raupen, um die Feigenkakteen zu bekämpfen. Aber pass auf, dass
-      dich die Kakteen nicht stechen oder du auf ihrem Dreck ausrutschst.
+      können die Verbreitung stoppen. Obacht: Schieße nicht gleich alles auf
+      einmal, denn dein Wurmvorrat ist begrenzt. Bewege dich mit den Pfeiltasten
+      und schieße Raupen, um die Feigenkakteen zu bekämpfen. Aber pass auf, dass
+      dich die Kakteen nicht stechen oder du auf ihrem Dreck ausrutschst!
     </div>
     <section id="next-section">
       <a href="Quiz.html">RÄTSELN >>></a>
     </section>
+    <audio controls autoplay>
+      <source src="sounds/Kaktusschlacht.mp3" type="audio/mp3" />
+      Dein Browser unterstützt den Audio-Tag nicht.
+    </audio>
   </body>
 </html>
