@@ -286,10 +286,38 @@
           src: "img/feige.png",
           img: new Image(),
           hit: false,
+          wavePhase: 0, // Für Wellenbewegung
+          waveMovement: false, // Flag für die Wellenbewegung
         };
         feige.img.src = feige.src;
         feiges.push(feige);
+
+        // Jedes dritte Feigen-Objekt wächst jede Sekunde um 5%, aber erst ab 10 Punkten
+        if (score >= 10 && feiges.length % 3 === 2) {
+          feige.growthInterval = setInterval(() => {
+            feige.width *= 1.05;
+            feige.height *= 1.05;
+          }, 1000);
+        }
+
+        // Ab 5 Punkten mehr Feigen erscheinen lassen (Reduzierung des Intervalls)
+        // Ab 5 Punkten mehr Feigen erscheinen lassen (Reduzierung des Intervalls)
+        if (score >= 5) {
+          let newInterval = Math.max(1000, 3000 - score * 150); // 1,5 Sekunden pro Punkt statt 200ms
+          clearInterval(feigeIntervalID); // Altes Intervall stoppen
+          feigeIntervalID = setInterval(createfeiges, newInterval); // Neues Intervall starten
+        }
+
+        // Ab 15 Sekunden jede 2. Feige wellenförmig bewegen
+        if (Date.now() - startTime >= 15000) {
+          if (feiges.length % 2 === 1) {
+            // Jede zweite Feige
+            feige.wavePhase = Math.random() * Math.PI * 2; // Startwert für Wellenbewegung
+            feige.waveMovement = true;
+          }
+        }
       }
+
       function updateWormStorage() {
         if (Date.now() - wormStorage.wormTimer > 5000) {
           wormStorage.wormTimer = Date.now();
@@ -327,11 +355,23 @@
         }
         if (KEY_UP && imke.y > 0) imke.y -= 8;
         if (KEY_DOWN && imke.y + imke.height < canvas.height) imke.y += 8;
-        feiges.forEach((feige) => (feige.x -= 5));
+
+        // Feigen-Positionen aktualisieren
+        feiges.forEach((feige, index) => {
+          feige.x -= 5; // Feigen nach links bewegen
+
+          // Wenn die Feige wellenförmig bewegt werden soll
+          if (feige.waveMovement) {
+            feige.y += Math.sin(feige.wavePhase) * 5; // Sinusfunktion für Wellenbewegung
+            feige.wavePhase += 0.1; // Die Phase der Sinuswelle wird mit jeder Update-Schleife angepasst
+          }
+        });
+
         wurms.forEach((wurm) => (wurm.x += 10));
         wurms = wurms.filter((wurm) => wurm.x < canvas.width);
         draw();
       }
+
       function loadImages() {
         backgroundImage.src = "img/p_background.png";
       }
@@ -372,6 +412,10 @@
       einmal, dein Wurmvorrat ist begrenzt. Bewege dich mit den Pfeiltasten und
       schieße Raupen, um die Feigenkakteen zu bekämpfen. Aber pass auf, dass
       dich die Kakteen nicht stechen oder du auf ihrem Dreck ausrutschst!
+      <br />♪ ♫ ♬ Übrigens: Falls die Hintergrundmusik in deinem Browser nicht
+      von alleine startet, kannst du sie manuell durch das "▶"-Symbol im
+      Audioplayer aktivieren / deaktivieren. Vergiss nicht wieder zurück ins
+      Bild zu klicken, damit die Steuerung weiter funktioniert.
     </div>
     <section id="next-section">
       <a href="Quiz.html">RÄTSELN >>></a>
