@@ -15,7 +15,6 @@
         align-items: center;
         flex-direction: column;
       }
-
       #score {
         font-family: "Courier New", monospace;
         font-size: 150px;
@@ -23,7 +22,6 @@
         margin-bottom: 20px;
         z-index: 2;
       }
-
       body::before {
         content: "";
         position: absolute;
@@ -35,7 +33,6 @@
         background-size: cover;
         z-index: -1;
       }
-
       canvas {
         background-color: #39ed39;
         border-radius: 320px / 270px;
@@ -44,7 +41,6 @@
         max-width: 850px;
         height: auto;
       }
-
       /* Wurmspeicher Styling */
       #worm-storage {
         position: absolute;
@@ -58,7 +54,6 @@
         background-position: center;
         z-index: 3;
       }
-
       /* Audio Player Styling */
       audio {
         width: 300px;
@@ -68,11 +63,9 @@
         display: block;
         margin-top: 20px;
       }
-
       audio::-webkit-media-controls-panel {
         background: #90a2bb;
       }
-
       /* Responsive Anpassungen bleiben wie gehabt */
       @media (max-width: 900px) {
         body {
@@ -105,7 +98,6 @@
           z-index: 2;
         }
       }
-
       @media (min-width: 769px) {
         #instructions-box {
           position: absolute;
@@ -171,11 +163,9 @@
       let KEY_UP = false;
       let KEY_DOWN = false;
       let paused = false; // Neue Variable für Pausenfunktion
-
       let canvas;
       let ctx;
       const backgroundImage = new Image();
-
       let imke = {
         x: 50,
         y: 250,
@@ -185,59 +175,47 @@
         image: new Image(),
       };
       imke.image.src = imke.src;
-
       let feiges = [];
       let wurms = [];
       let score = 0;
       let feigeInterval = 5000;
       let feigeIntervalID;
-      let feigeGrowthRate = 20;
-      let feigeSizeThreshold = 10;
-      let feigeCounter = 0;
-
       // Wurmspeicher Variablen
       let wormStorage = {
         currentWorms: 0,
         maxWorms: 10,
         wormTimer: Date.now(),
       };
-
       // 🔹 **NEUE VARIABLEN für Statistik**
       let wormsShot = 0;
       let cactusHit = 0;
       let highscore = localStorage.getItem("highscore") || 0;
       let startTime = Date.now();
-
       // Sounds laden
       let soundFeigeHit = new Audio("sounds/autsch.mp3");
       let soundImkeBoom = new Audio("sounds/explode.mp3");
       let soundWurmShoot = new Audio("sounds/wurmflutsch.mp3");
       let soundBackground = new Audio("sounds/Kaktusschlacht.mp3");
       let soundSlip = new Audio("sounds/ausrutsch.mp3");
-
       // Hintergrundmusik im Loop abspielen
       soundBackground.loop = true;
       soundBackground.volume = 0.5;
       soundBackground.play();
-
       function updateScore() {
         document.getElementById("score").innerText = "Punkte: " + score;
         document.getElementById("cactus-hit").innerText = cactusHit;
         document.getElementById("worms-shot").innerText = wormsShot;
-
         if (score > highscore) {
           highscore = score;
           localStorage.setItem("highscore", highscore);
         }
         document.getElementById("highscore").innerText = highscore;
       }
-
       function updateTime() {
         let elapsedTime = Math.floor((Date.now() - startTime) / 1000);
         document.getElementById("time-passed").innerText = elapsedTime;
       }
       setInterval(updateTime, 1000);
-
       document.onkeydown = function (e) {
         if (e.keyCode === 32) KEY_SPACE = true;
         if (e.keyCode === 38) KEY_UP = true;
@@ -245,31 +223,25 @@
         if (e.key === "s") paused = true;
         if (e.key === "p") paused = false;
       };
-
       document.onkeyup = function (e) {
         if (e.keyCode === 32) KEY_SPACE = false;
         if (e.keyCode === 38) KEY_UP = false;
         if (e.keyCode === 40) KEY_DOWN = false;
       };
-
       function startGame() {
         canvas = document.getElementById("canvas");
         ctx = canvas.getContext("2d");
         loadImages();
-
         // Spiel-Schleife starten
         setInterval(update, 1000 / 25); // 25 FPS für die Hauptlogik
         feigeIntervalID = setInterval(createfeiges, feigeInterval);
         setInterval(checkForCollision, 1000 / 25); // Überprüfen auf Kollisionen
-
         // Highscore jede Millisekunde überprüfen
         setInterval(updateScore, 1); // Hier wird der Highscore alle 1ms aktualisiert
-
         draw();
         updateScore();
         setInterval(updateWormStorage, 1000);
       }
-
       function isCollision(obj1, obj2) {
         return (
           obj1.x + obj1.width > obj2.x &&
@@ -278,7 +250,6 @@
           obj1.y < obj2.y + obj2.height
         );
       }
-
       function checkForCollision() {
         feiges.forEach((feige, index) => {
           if (isCollision(imke, feige)) {
@@ -288,7 +259,6 @@
               location.reload();
             }, 1000);
           }
-
           wurms.forEach((wurm) => {
             if (isCollision(wurm, feige) && !feige.hit) {
               feige.hit = true;
@@ -297,15 +267,16 @@
               score++;
               cactusHit++; // 🔹 **Kaktus-Treffer zählen**
               updateScore();
-
               setTimeout(() => {
                 feiges.splice(index, 1);
               }, 500);
             }
           });
         });
+        if (isCollision(imke, { x: 200, y: 300, width: 100, height: 100 })) {
+          soundSlip.play();
+        }
       }
-
       function createfeiges() {
         let feige = {
           x: canvas.width,
@@ -315,27 +286,15 @@
           src: "img/feige.png",
           img: new Image(),
           hit: false,
-          initialWidth: 100,
-          initialHeight: 80,
-          growTime: Date.now(),
         };
         feige.img.src = feige.src;
         feiges.push(feige);
-
-        let elapsedTime = Date.now() - feigeInterval;
-        if (elapsedTime > 20000 && feigeInterval > 1000) {
-          feigeInterval -= 200;
-          clearInterval(feigeIntervalID);
-          feigeIntervalID = setInterval(createfeiges, feigeInterval);
-        }
       }
-
       function updateWormStorage() {
         if (Date.now() - wormStorage.wormTimer > 5000) {
           wormStorage.wormTimer = Date.now();
           wormStorage.currentWorms = 0;
         }
-
         if (wormStorage.currentWorms >= 10) {
           document.getElementById("worm-storage").style.backgroundImage =
             "url('img/topf3.png')";
@@ -347,10 +306,8 @@
             "url('img/topf1.png')";
         }
       }
-
       function update() {
         if (paused) return;
-
         if (KEY_SPACE) {
           if (wormStorage.currentWorms < wormStorage.maxWorms) {
             let wurm = {
@@ -368,35 +325,16 @@
             soundWurmShoot.play();
           }
         }
-
         if (KEY_UP && imke.y > 0) imke.y -= 8;
         if (KEY_DOWN && imke.y + imke.height < canvas.height) imke.y += 8;
-
-        feiges.forEach((feige) => {
-          if (score >= feigeSizeThreshold && !feige.hit) {
-            let elapsedTime = Date.now() - feige.growTime;
-            if (elapsedTime >= 500) {
-              if (feigeCounter % 3 == 0) {
-                feige.width *= 1 + feigeGrowthRate / 100;
-                feige.height *= 1 + feigeGrowthRate / 100;
-              }
-              feige.growTime = Date.now();
-              feigeCounter++;
-            }
-          }
-          feige.x -= 5;
-        });
-
+        feiges.forEach((feige) => (feige.x -= 5));
         wurms.forEach((wurm) => (wurm.x += 10));
         wurms = wurms.filter((wurm) => wurm.x < canvas.width);
-
         draw();
       }
-
       function loadImages() {
         backgroundImage.src = "img/p_background.png";
       }
-
       function draw() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
@@ -404,12 +342,10 @@
         feiges.forEach((feige) => {
           ctx.drawImage(feige.img, feige.x, feige.y, feige.width, feige.height);
         });
-
         wurms.forEach((wurm) => {
           ctx.drawImage(wurm.img, wurm.x, wurm.y, wurm.width, wurm.height);
         });
       }
-
       window.onload = startGame;
     </script>
   </head>
@@ -446,3 +382,4 @@
     </audio>
   </body>
 </html>
+
